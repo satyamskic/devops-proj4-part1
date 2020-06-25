@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wp-pv-claim
+  labels:
+    app: webpage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webpage-deploy
+  labels:
+    app: webpage
+    dc: IN
+spec:
+  selector:
+    matchLabels:
+      app: webpage
+      dc: IN
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: webpage
+        dc: IN
+    spec:
+      containers:
+      - image: satyam0786/webserver:v1
+        name: web-container
+        ports:
+        - containerPort: 80
+          name: webpage
+        volumeMounts:
+        - name: webpage-persistent-volume 
+          mountPath: /var/www/html
+      volumes:
+      - name: webpage-persistent-volume
+        persistentVolumeClaim:
+          claimName: wp-pv-claim
